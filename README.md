@@ -1,6 +1,6 @@
-# Mèo tam thể trên desktop 🐾
+# Mèo cho ban gai choi dua
 
-Một người bạn pixel art nhỏ, viết bằng **Python 3.14 + PySide6**, dành cho Windows 10/11 64-bit. Chạy hoàn toàn trên máy, không có tài khoản hay dịch vụ mạng.
+Viết bằng **Python 3.14 + PySide6**, dành cho Windows 10/11 64-bit. 
 
 ![Năm hoạt ảnh](previews/preview.gif)
 
@@ -8,31 +8,7 @@ Một người bạn pixel art nhỏ, viết bằng **Python 3.14 + PySide6**, d
 
 Mở **`dist\DesktopCat.exe`** bằng cách nhấp đúp. Không cần cài Python; không cần chép thư mục ảnh đi kèm. EXE một tệp tự giải nén tài nguyên lúc khởi động nên lần mở đầu có thể mất vài giây.
 
-Mèo xuất hiện ở mép dưới màn hình chính, ngay phía trên taskbar. Mèo nổi trên các cửa sổ thông thường; ứng dụng toàn màn hình độc quyền có thể che mèo.
 
-| Thao tác | Kết quả |
-|---|---|
-| Click trái vào mèo | Mèo giận khoảng 2 giây; nếu đang ngủ thì thức dậy trước |
-| Giữ chuột trái và kéo | Đổi vị trí ngang; thả ra để mèo tiếp tục đi |
-| Chuột phải vào mèo | Mở menu tạm dừng, ẩn/hiện và thoát |
-| Chuột phải biểu tượng mèo ở khay hệ thống | Mở cùng menu, kể cả khi mèo đang ẩn |
-| Nhấp đúp biểu tượng khay hệ thống | Ẩn hoặc hiện mèo |
-
-Biểu tượng khay hệ thống có thể nằm trong khu vực biểu tượng ẩn của Windows. Khi tạm dừng, hoạt ảnh và thời gian hành vi đều dừng; kéo vẫn hoạt động. Khi ẩn hoặc mở menu, thời gian cũng dừng. Nếu không có khay hệ thống, lệnh ẩn bị khóa để mèo luôn có thể được điều khiển.
-
-## Hành vi mặc định
-
-**Đi 45–90 giây → ăn 8 giây → đi 45–90 giây → ngủ 30–60 giây → thức dậy 1 giây → lặp lại.** Mèo quay đầu khi đến mép. Tức giận hoặc kéo mèo sẽ bắt đầu lại chu kỳ từ đi bộ. Click liên tục không kéo dài cơn giận.
-
-| Trạng thái | Khung hình | Tốc độ |
-|---|---:|---:|
-| Đi bộ | 8 | 8 fps |
-| Ăn | 6 | 6 fps |
-| Ngủ | 4 | 2 fps |
-| Thức dậy | 6 | 6 fps, phát một lần |
-| Tức giận | 6 | 8 fps |
-
-Một mèo, một màn hình chính; không âm thanh, không tự khởi động cùng Windows. Mở nhiều lần sẽ tạo nhiều mèo độc lập. Không lưu vị trí hay trạng thái khi thoát.
 
 ## Chạy mã Python
 
