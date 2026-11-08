@@ -9,8 +9,8 @@ Viết bằng **Python 3.14 + PySide6**, dành cho Windows 10/11 64-bit.
 [![Tải DesktopCat.exe cho Windows](https://img.shields.io/badge/TẢI_DESKTOPCAT.EXE-Windows_10%2F11_64--bit-f4a261?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/NNghipp/desktop-cat-for-my-gf/releases/latest/download/DesktopCat.exe)
 
 1. Nhấn **Tải DesktopCat.exe** ở trên để tải bản mới nhất.
-2. Mở file **DesktopCat.exe** vừa tải bằng cách nhấp đúp.
-3. Chờ vài giây, mèo tam thể sẽ xuất hiện trên desktop.
+2. Mở file **DesktopCat.exe** 
+3. Chờ vài giây, mèo sẽ xuất hiện trên desktop.
 
 File EXE chứa sẵn Python và toàn bộ hình hoạt ảnh. Bạn chỉ cần tải một file và mở trực tiếp.
 
