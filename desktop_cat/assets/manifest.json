@@ -1,0 +1,73 @@
+{
+  "sprite_size": [
+    64,
+    64
+  ],
+  "animations": {
+    "walk": {
+      "frames": [
+        "walk/00.png",
+        "walk/01.png",
+        "walk/02.png",
+        "walk/03.png",
+        "walk/04.png",
+        "walk/05.png",
+        "walk/06.png",
+        "walk/07.png"
+      ],
+      "fps": 8,
+      "loop": true,
+      "ground_y": 60
+    },
+    "eat": {
+      "frames": [
+        "eat/00.png",
+        "eat/01.png",
+        "eat/02.png",
+        "eat/03.png",
+        "eat/04.png",
+        "eat/05.png"
+      ],
+      "fps": 6,
+      "loop": true,
+      "ground_y": 60
+    },
+    "sleep": {
+      "frames": [
+        "sleep/00.png",
+        "sleep/01.png",
+        "sleep/02.png",
+        "sleep/03.png"
+      ],
+      "fps": 2,
+      "loop": true,
+      "ground_y": 60
+    },
+    "wake": {
+      "frames": [
+        "wake/00.png",
+        "wake/01.png",
+        "wake/02.png",
+        "wake/03.png",
+        "wake/04.png",
+        "wake/05.png"
+      ],
+      "fps": 6,
+      "loop": false,
+      "ground_y": 60
+    },
+    "angry": {
+      "frames": [
+        "angry/00.png",
+        "angry/01.png",
+        "angry/02.png",
+        "angry/03.png",
+        "angry/04.png",
+        "angry/05.png"
+      ],
+      "fps": 8,
+      "loop": true,
+      "ground_y": 60
+    }
+  }
+}
