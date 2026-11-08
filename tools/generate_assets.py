@@ -7,7 +7,7 @@ from pathlib import Path
 import json
 import math
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -72,6 +72,57 @@ def draw_frame(state, i):
     return frame
 
 
+def match_colors(frame, state):
+    # Use one indexed palette for fur, shadows, facial details and accessories.
+    colors = [
+        (49,28,17), (89,62,47), (231,152,65), (255,188,106),
+        (255,237,214), (218,186,154), (242,153,148), (255,252,243),
+        (115,42,48), (238,47,49), (38,126,117), (77,165,151),
+    ]
+    def quantize(entries):
+        palette = Image.new("P", (1, 1))
+        palette.putpalette(list(sum(entries, ())) + list(entries[0]) * (256-len(entries)))
+        return frame.convert("RGB").quantize(palette=palette, dither=Image.Dither.NONE).convert("RGBA")
+
+    recolored = quantize(colors[:-2])
+    if state == "eat":
+        # Only original teal ceramic pixels may use the two bowl colors.
+        ceramic = quantize(colors)
+        for y in range(frame.height):
+            for x in range(frame.width):
+                r, g, b, _ = frame.getpixel((x, y))
+                if x >= 36 and y >= 53 and min(g, b) > r:
+                    recolored.putpixel((x, y), ceramic.getpixel((x, y)))
+    recolored.putalpha(frame.getchannel("A"))
+    return recolored
+
+
+def eating_mouth(frame, index):
+    # Muzzle anchors follow the head down to the rim and back up.
+    poses = [None, (37,45,2), (38,48,4), (37,50,3), (36,44,2), None]
+    if poses[index]:
+        x, y, depth = poses[index]
+        draw = ImageDraw.Draw(frame)
+        draw.rounded_rectangle((x-3,y,x+2,y+depth), radius=1,
+                               fill=(115,42,48), outline=(49,28,17))
+        draw.line((x-1,y+depth-1,x+1,y+depth-1), fill=(242,153,148))
+    return frame
+
+
+def apply_outline(frame):
+    # One pixel inside the silhouette, preserving its size and foot baseline.
+    alpha = frame.getchannel("A")
+    edge = ImageChops.subtract(alpha, alpha.filter(ImageFilter.MinFilter(3)))
+    for y in range(frame.height):
+        for x in range(frame.width):
+            if edge.getpixel((x, y)):
+                r, g, b, _ = frame.getpixel((x, y))
+                if r > 150 and g < r // 3 and b < r // 3:
+                    continue  # Keep the red anger symbol legible.
+                frame.putpixel((x, y), (49, 28, 17, 255))
+    return frame
+
+
 def font(size):
     try:
         return ImageFont.truetype("C:/Windows/Fonts/segoeui.ttf", size)
@@ -97,7 +148,9 @@ def generate():
         folder.mkdir(exist_ok=True)
         sd.text((20, 12 + row * 164), f"{labels[state]}  /  {fps} fps", font=font(15), fill=INK)
         for i in range(count):
-            image = draw_frame(state, i)
+            image = apply_outline(match_colors(draw_frame(state, i), state))
+            if state == "eat":
+                image = eating_mouth(image, i)
             name = f"{state}/{i:02}.png"
             image.save(ASSETS / name)
             names.append(name)
