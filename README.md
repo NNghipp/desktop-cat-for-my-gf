@@ -2,7 +2,7 @@
 
 Viết bằng **Python 3.14 + PySide6**, dành cho Windows 10/11 64-bit. 
 
-![Năm hoạt ảnh](previews/preview.gif)
+
 
 ## Mở nhanh bản EXE
 
