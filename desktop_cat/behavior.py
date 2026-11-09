@@ -20,7 +20,7 @@ class Behavior:
         self.settings = settings
         self.wake_seconds = wake_seconds
         self.rng = rng if rng is not None else random.Random()
-        self.next_rest = State.EAT
+        self.next_rest = self.rng.choice((State.EAT, State.SLEEP))
         self.angry_after_wake = False
         self.state = State.WALK
         self.elapsed = 0.0
@@ -30,7 +30,7 @@ class Behavior:
         s = self.settings
         match state:
             case State.WALK:
-                return self.rng.uniform(s.walk_min, s.walk_max)
+                return s.walk_before_eat if self.next_rest == State.EAT else s.walk_before_sleep
             case State.EAT:
                 return s.eat_seconds
             case State.SLEEP:
@@ -46,7 +46,7 @@ class Behavior:
         self.duration = self._duration(state)
 
     def restart_walk(self) -> None:
-        self.next_rest = State.EAT
+        self.next_rest = self.rng.choice((State.EAT, State.SLEEP))
         self.angry_after_wake = False
         self._enter(State.WALK)
 
@@ -66,8 +66,7 @@ class Behavior:
             case State.WALK:
                 self._enter(self.next_rest)
             case State.EAT:
-                self.next_rest = State.SLEEP
-                self._enter(State.WALK)
+                self.restart_walk()
             case State.SLEEP:
                 self._enter(State.WAKE)
             case State.WAKE:

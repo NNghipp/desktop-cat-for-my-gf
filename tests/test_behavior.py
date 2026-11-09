@@ -7,11 +7,20 @@ from desktop_cat.behavior import Behavior, State, move_within_bounds
 from desktop_cat.settings import Settings
 
 
+class ScriptedRandom(random.Random):
+    def __init__(self):
+        super().__init__(0)
+        self.actions = iter([State.EAT, State.SLEEP, State.EAT] * 100)
+
+    def choice(self, values):
+        return next(self.actions)
+
+
 @pytest.fixture
 def cat():
-    settings = replace(Settings(), walk_min=2, walk_max=2, eat_seconds=1,
+    settings = replace(Settings(), walk_before_eat=2, walk_before_sleep=2, eat_seconds=1,
                        sleep_min=3, sleep_max=3, angry_seconds=2)
-    return Behavior(settings, wake_seconds=1, rng=random.Random(0))
+    return Behavior(settings, wake_seconds=1, rng=ScriptedRandom())
 
 
 def test_complete_autonomous_cycle(cat):
@@ -35,7 +44,7 @@ def test_click_interrupts_walk_or_eat(cat, state_time):
     assert cat.state == State.ANGRY
     cat.advance(2)
     assert cat.state == State.WALK
-    assert cat.next_rest == State.EAT
+    assert cat.next_rest in (State.EAT, State.SLEEP)
 
 
 def test_click_while_asleep_wakes_before_anger(cat):
@@ -72,7 +81,7 @@ def test_drag_restarts_cycle_even_during_sleep(cat):
     cat.restart_walk()
     assert cat.state == State.WALK
     assert cat.elapsed == 0
-    assert cat.next_rest == State.EAT
+    assert cat.next_rest in (State.EAT, State.SLEEP)
 
 
 @pytest.mark.parametrize("x,direction,distance,left,right,expected", [
@@ -85,3 +94,23 @@ def test_drag_restarts_cycle_even_during_sleep(cat):
 ])
 def test_motion_edges(x, direction, distance, left, right, expected):
     assert move_within_bounds(x, direction, distance, left, right) == expected
+
+
+@pytest.mark.parametrize("action,wait", [(State.EAT,30), (State.SLEEP,45)])
+def test_random_actions_can_repeat_and_use_specific_wait(action, wait):
+    class Always(random.Random):
+        def choice(self, values):
+            assert action in values
+            return action
+
+    cat = Behavior(Settings(), wake_seconds=1, rng=Always(0))
+    for _ in range(3):
+        assert cat.state == State.WALK
+        assert cat.duration == wait
+        cat.advance(wait)
+        assert cat.state == action
+        cat.advance(cat.duration)
+        if action == State.SLEEP:
+            assert cat.state == State.WAKE
+            cat.advance(1)
+    assert cat.state == State.WALK
