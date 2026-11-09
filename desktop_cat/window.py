@@ -1,10 +1,10 @@
 import time
 
-from PySide6.QtCore import QPoint, Qt, QTimer
-from PySide6.QtGui import QAction, QIcon, QMouseEvent, QPainter
+from PySide6.QtCore import QPoint, QSettings, Qt, QTimer
+from PySide6.QtGui import QAction, QActionGroup, QIcon, QMouseEvent, QPainter
 from PySide6.QtWidgets import QApplication, QMenu, QSystemTrayIcon, QWidget
 
-from .animation import AnimationLibrary
+from .animation import AnimationLibrary, COATS
 from .behavior import Behavior, State, move_within_bounds
 from .settings import Settings
 
@@ -22,7 +22,12 @@ class CatWindow(QWidget):
         self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
         self.setFixedSize(self.settings.display_size, self.settings.display_size)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.library = AnimationLibrary(self.width())
+        self.preferences = QSettings("DesktopCat", "DesktopCat")
+        saved = self.preferences.value("coat", "calico")
+        self.coat = saved if saved in COATS else "calico"
+        if saved != self.coat:
+            self.preferences.setValue("coat", self.coat)
+        self.library = AnimationLibrary(self.width(), coat=self.coat)
         self.behavior = Behavior(self.settings, self.library.duration(State.WAKE))
         self.direction = 1
         self.paused = False
@@ -47,6 +52,16 @@ class CatWindow(QWidget):
         title = self.menu.addAction("🐾  Mèo tam thể")
         title.setEnabled(False)
         self.menu.addSeparator()
+        colors = self.menu.addMenu("Màu mèo")
+        self.color_group = QActionGroup(self)
+        self.color_group.setExclusive(True)
+        for key, (label, _) in COATS.items():
+            action = colors.addAction(label)
+            action.setCheckable(True)
+            action.setChecked(key == self.coat)
+            action.setData(key)
+            self.color_group.addAction(action)
+        self.color_group.triggered.connect(lambda action: self.change_coat(action.data()))
         self.pause_action = QAction("Tạm dừng", self)
         self.pause_action.triggered.connect(self.toggle_pause)
         self.menu.addAction(self.pause_action)
@@ -80,6 +95,18 @@ class CatWindow(QWidget):
         self.timer.setTimerType(Qt.TimerType.PreciseTimer)
         self.timer.timeout.connect(self._tick)
         self.timer.start(self.settings.frame_interval_ms)
+
+    def change_coat(self, coat):
+        library = AnimationLibrary(self.width(), coat=coat)
+        self.library = library
+        self.coat = coat
+        self.preferences.setValue("coat", coat)
+        self.frame_key = None
+        self._render_frame()
+        icon = QIcon(self.library.frame(State.WALK, 0, 1))
+        self.setWindowIcon(icon)
+        self.tray.setIcon(icon)
+        self.tray.setToolTip("Mèo " + COATS[coat][0] + " • Chuột phải để chọn màu")
 
     def _bind_screen(self, screen):
         if self.screen is not None:
@@ -151,6 +178,7 @@ class CatWindow(QWidget):
         if self.current_pixmap is not None:
             painter = QPainter(self)
             painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform, False)
+            painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_Source)
             painter.drawPixmap(0, 0, self.current_pixmap)
 
     def mousePressEvent(self, event: QMouseEvent):

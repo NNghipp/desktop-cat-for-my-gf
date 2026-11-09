@@ -5,3 +5,6 @@ build/
 dist/
 *.spec
 *.log
+
+previews/
+preview/
