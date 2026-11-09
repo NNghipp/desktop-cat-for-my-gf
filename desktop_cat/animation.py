@@ -56,7 +56,7 @@ class AnimationLibrary:
         self.frames: dict[tuple[State, int], list[QPixmap]] = {}
         for state in State:
             spec = self.animations[state.value]
-            filename = f"orange-{state.value}.png" if coat == "orange" else f"{state.value}.png"
+            filename = f"{coat}-{state.value}.png" if coat in ("orange", "calico") and assets == ASSETS else f"{state.value}.png"
             mask = QImage(str(assets / "masks" / filename))
             if mask.isNull() and (coat != "calico" or assets == ASSETS):
                 raise ValueError(f"Missing coat mask: {state.value}")

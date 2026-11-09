@@ -180,12 +180,41 @@ def sleeping_expression(mask, master, index):
             mask.putpixel((center+dx,y+dy),22)
 
 
+def clean_calico_fur(im, roles, state, index):
+    """Restore red quantization specks from neighbouring calico fur only."""
+    left, right, eye, nose = LANDMARKS[state][index]
+    result = roles.copy()
+    mouth = SNOUT[index] if state == "eat" else (
+        (left-1,eye+3,right+2,eye+15) if state == "angry"
+        else (left+1,nose-1,right-1,nose+4))
+    x0,y0,x1,y1 = mouth
+    for y in range(64):
+        for x in range(64):
+            rgb = bytes(im.getpixel((x,y))[:3]).hex()
+            if not im.getpixel((x,y))[3] or rgb not in ("ee2f31","732a30","f29994"):
+                continue
+            role = roles.getpixel((x,y))
+            if role in (0,14,15,16,17,18,19,20,22):
+                continue
+            if x0<=x<=x1 and y0<=y<=y1:
+                continue
+            if state=="angry" and 34<=x<=47 and y<eye-5:
+                continue
+            # Pink inner-ear clusters are intentional. Red/maroon ink
+            # elsewhere is a quantization remnant on the coat.
+            if rgb=="f29994" and y<eye-2:
+                continue
+            result.putpixel((x,y),16+local_fur(im,x,y)-1)
+    return result
+
+
 if __name__ == "__main__":
     folder = ASSETS / "masks"
     folder.mkdir(exist_ok=True)
     for state, landmarks in LANDMARKS.items():
         strip = Image.new("L", (64*len(landmarks),64))
         ginger = strip.copy()
+        calico = strip.copy()
         for index in range(len(landmarks)):
             im = Image.open(ASSETS/state/f"{index:02}.png").convert("RGBA")
             roles = classify(im,state,index)
@@ -193,7 +222,9 @@ if __name__ == "__main__":
             if state == "sleep":
                 sleeping_expression(roles,im,index)
                 sleeping_expression(striped,im,index)
+            calico.paste(clean_calico_fur(im,roles,state,index),(64*index,0))
             strip.paste(roles,(64*index,0))
             ginger.paste(striped,(64*index,0))
+        calico.save(folder/f"calico-{state}.png")
         ginger.save(folder/f"orange-{state}.png")
         strip.save(folder/f"{state}.png")
