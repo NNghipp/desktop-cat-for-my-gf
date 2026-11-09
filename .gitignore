@@ -8,3 +8,4 @@ dist/
 
 previews/
 preview/
+!tools/desktop_cat.spec

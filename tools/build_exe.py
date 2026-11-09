@@ -29,9 +29,8 @@ def main() -> int:
     env = build_environment()
     subprocess.run([sys.executable, "-m", "pytest", "-q"], cwd=ROOT, env=env, check=True)
     subprocess.run([
-        sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "--onefile",
-        "--windowed", "--name", "DesktopCat", "--icon", "desktop_cat/assets/cat.ico",
-        "--add-data", "desktop_cat/assets:desktop_cat/assets", "main.py",
+        sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean",
+        "tools/desktop_cat.spec",
     ], cwd=ROOT, env=env, check=True)
     exe = ROOT / "dist" / "DesktopCat.exe"
     # Only the EXE is copied. No source tree, venv or images can mask missing files.
