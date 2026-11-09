@@ -30,6 +30,7 @@ class CatWindow(QWidget):
         self.press_position: QPoint | None = None
         self.dragging = False
         self.press_x = 0.0
+        self.press_offset = QPoint()
         self.screen = None
         self.x_float = 0.0
         self.current_pixmap = None
@@ -70,7 +71,7 @@ class CatWindow(QWidget):
             self.visible_action.setEnabled(False)
 
         app = QApplication.instance()
-        app.primaryScreenChanged.connect(self._bind_screen)
+        app.screenRemoved.connect(self._screen_removed)
         self._bind_screen(app.primaryScreen())
         self.x_float = self.screen.availableGeometry().center().x() - self.width() / 2
         self._place()
@@ -92,6 +93,11 @@ class CatWindow(QWidget):
             self.screen.availableGeometryChanged.connect(self._geometry_changed)
             self.screen.geometryChanged.connect(self._geometry_changed)
             self._place()
+
+    def _screen_removed(self, screen):
+        if screen is self.screen:
+            self.screen = None
+            self._bind_screen(QApplication.primaryScreen())
 
     def _geometry_changed(self, _geometry):
         self._place()
@@ -151,6 +157,7 @@ class CatWindow(QWidget):
         if event.button() == Qt.MouseButton.LeftButton:
             self.press_position = event.globalPosition().toPoint()
             self.press_x = self.x_float
+            self.press_offset = self.press_position - self.pos()
             self.dragging = False
             self.last_tick = time.monotonic()
             event.accept()
@@ -163,8 +170,13 @@ class CatWindow(QWidget):
             self.dragging = True
             self.setCursor(Qt.CursorShape.ClosedHandCursor)
         if self.dragging:
-            self.x_float = self.press_x + delta.x()
-            self._place()
+            cursor = event.globalPosition().toPoint()
+            target = QApplication.screenAt(cursor)
+            if target is not None and target is not self.screen:
+                self._bind_screen(target)
+            position = cursor - self.press_offset
+            self.x_float = float(position.x())
+            self.move(position)
         event.accept()
 
     def mouseReleaseEvent(self, event: QMouseEvent):
@@ -174,6 +186,10 @@ class CatWindow(QWidget):
             self.dragging = False
             self.setCursor(Qt.CursorShape.PointingHandCursor)
             if dragged:
+                target = QApplication.screenAt(event.globalPosition().toPoint())
+                if target is not None and target is not self.screen:
+                    self._bind_screen(target)
+                self._place()
                 self.behavior.restart_walk()
             elif not self.paused:
                 self.behavior.click()

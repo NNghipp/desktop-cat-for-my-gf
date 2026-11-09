@@ -100,3 +100,35 @@ def test_no_tray_means_hide_is_disabled(window):
     window.tray_available = False
     window.toggle_visible()
     assert window.isVisible()
+
+def test_drag_selects_screen_at_cursor_and_settles_at_bottom(window, monkeypatch):
+    from PySide6.QtCore import QObject, QRect, Signal, QEvent, QPointF
+    from PySide6.QtGui import QMouseEvent
+
+    class Screen(QObject):
+        availableGeometryChanged = Signal(object)
+        geometryChanged = Signal(object)
+
+        def availableGeometry(self):
+            return QRect(-1600, -200, 1600, 900)
+
+    secondary = Screen()
+    monkeypatch.setattr(QApplication, "screenAt", staticmethod(lambda point: secondary))
+    window.press_position = QPoint(100, 100)
+    window.press_offset = QPoint(50, 60)
+    event = QMouseEvent(QEvent.Type.MouseMove, QPointF(30, 30), QPointF(-500, 200),
+                        Qt.MouseButton.NoButton, Qt.MouseButton.LeftButton,
+                        Qt.KeyboardModifier.NoModifier)
+    window.mouseMoveEvent(event)
+    assert window.screen is secondary
+    assert window.pos() == QPoint(-550, 140)
+    release = QMouseEvent(QEvent.Type.MouseButtonRelease, QPointF(50, 60),
+                          QPointF(-500, 200), Qt.MouseButton.LeftButton,
+                          Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier)
+    window.mouseReleaseEvent(release)
+    assert window.screen is secondary
+    assert window.x() == -550
+    assert window.y() + 120 == 700
+    assert window.behavior.state == State.WALK
+    window.screen = None
+    window._bind_screen(QApplication.primaryScreen())
