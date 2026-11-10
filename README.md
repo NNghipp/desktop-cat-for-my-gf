@@ -1,5 +1,5 @@
 # Mèo cho ban gai choi dua
-
+pls gif star if u see it fun
 Viết bằng **Python 3.14 + PySide6**, dành cho Windows 10/11 64-bit. 
 
 
